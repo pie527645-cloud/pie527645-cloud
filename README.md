@@ -39,6 +39,34 @@ flowchart LR
 
 ---
 
+## End-to-End CI & Agent Quality Pipeline
+
+All 11 TypeScript CLIs compose offline without network access and emit standard **SARIF 2.1.0** logs for GitHub Code Scanning:
+
+```bash
+# 1. Supply-chain & CI Node matrix gate (derives targets from package.json & .github/workflows)
+lockfile-xray check . --format sarif > lockfile.sarif
+
+# 2. Agent instruction & SKILL.md budget/script/security gate (fixture home only, offline)
+agent-lint context . --agent claude --no-home --budget 4000
+agent-lint check . --no-home --format sarif > agent-lint.sarif
+
+# 3. Static AST + isolated sandbox ReDoS gate
+redos-hunter check src --confirm --format sarif > redos.sarif
+
+# 4. .env drift & secret-safe MCP exposure check
+env-guard check . --format sarif > env.sarif
+
+# 5. Live MCP poisoning audit, deterministic contract recording & schema breaking-change diff
+schema-guard diff baseline.mcp-snapshot.json current.mcp-snapshot.json --format sarif > schema.sarif
+mcp-cassette record --stdio "node dist/mcp.js" --redact-env --out tests/fixtures/session.cassette.json
+mcp-doctor inspect --stdio "npx -y @pie527645-cloud/mcp-cassette replay --cassette tests/fixtures/session.cassette.json --strict"
+```
+
+*Illustrative fixture baseline (synthetic benchmark workspace):* `mcp-slim-proxy` cuts a 10-tool (`2,054` token) MCP backend to **4 meta-tools (`739` tokens)** while `agent-lint context` caps always-loaded repo instructions within a `4,000`-token budget.
+
+---
+
 ## Managed Cloud Scrapers (`Apify Store`)
 
 Need managed cloud runs, JSON/CSV datasets, scheduling, or Pay-Per-Event APIs (`$5` free monthly platform credits included)? Browse the live public Actors on [apify.com/tsun_tsun](https://apify.com/tsun_tsun?fpr=cn0u9m):
