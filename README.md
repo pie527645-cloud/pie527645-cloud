@@ -15,6 +15,7 @@ flowchart LR
     Xray["lockfile-xray (Lockfile + CI Matrix)"] -. supply-chain gate .-> Agent
     AgentLint["agent-lint (AGENTS/CLAUDE/SKILL Linter)"] -. prompt & script gate .-> Agent
     Redos["redos-hunter (AST ReDoS + Sandbox)"] -. backtracking gate .-> Agent
+    Shutdown["shutdown-guard (SIGTERM + Timeout Races)"] -. drain & 502 gate .-> Slim
     WebIntel -. managed cloud scale .-> Apify["Apify Store Actors (256 MB PPE)"]
 ```
 
@@ -34,6 +35,7 @@ flowchart LR
 | **[lockfile-xray](https://github.com/pie527645-cloud/lockfile-xray)** | Hidden Node engine incompatibilities & supply-chain risks | Offline `package-lock.json` v2/v3 & `pnpm-lock.yaml` v6/v9 auditor, derives CI Node matrix via `semver.intersects`, flags install scripts & host mismatches, **SARIF 2.1.0** |
 | **[agent-lint](https://github.com/pie527645-cloud/agent-lint)** | Drifting `AGENTS.md`/`CLAUDE.md`/`SKILL.md`, dead scripts & injection | Static context budget (`context`), case-exact path & script verification, Trojan Unicode/secret scrubbing, `--no-home` safe by default, **SARIF 2.1.0** |
 | **[redos-hunter](https://github.com/pie527645-cloud/redos-hunter)** | Catastrophic exponential & quadratic ReDoS regex traps | AST code-point interval overlap (`u`/`v`/`i`), detects nested quantifiers & trailing delimiter traps, isolated `--confirm` timeout sandbox, verified **RDH001-006** clean rewrites, **SARIF 2.1.0** |
+| **[shutdown-guard](https://github.com/pie527645-cloud/shutdown-guard)** | Node.js `502` timeout races & abrupt `SIGTERM` drops | Two-pass TS Compiler API AST auditor (`SDG001`-`SDG005`): cross-file `SIGTERM`/`SIGINT` drain coverage, `headersTimeout <= keepAliveTimeout` checks, `--lb-idle-timeout` threshold, **SARIF 2.1.0** |
 | **[open-web-intel-mcp](https://github.com/pie527645-cloud/open-web-intel-mcp)** | Local web/B2B/ATS scraping without Chrome or proxies | 7 tools (`fetch_markdown` w/ `llms.txt`, sitemaps, 7 ATS boards, e-commerce, MX/DMARC, podcasts RSS), `undici` DNS pinning + Origin/Host-checked HTTP |
 | **[apify-automation-toolkit](https://github.com/pie527645-cloud/apify-automation-toolkit)** | Interactive endpoint probing & clean workflow starters | Bilingual EN/TH client-side probers + Header-Auth n8n templates ([Live Hub](https://pie527645-cloud.github.io/apify-automation-toolkit/)) |
 
@@ -41,7 +43,7 @@ flowchart LR
 
 ## End-to-End CI & Agent Quality Pipeline
 
-All 11 TypeScript CLIs compose offline without network access and emit standard **SARIF 2.1.0** logs for GitHub Code Scanning:
+All 12 TypeScript CLIs compose offline without network access and emit standard **SARIF 2.1.0** logs for GitHub Code Scanning:
 
 ```bash
 # 1. Supply-chain & CI Node matrix gate (derives targets from package.json & .github/workflows)
@@ -51,8 +53,9 @@ lockfile-xray check . --format sarif > lockfile.sarif
 agent-lint context . --agent claude --no-home --budget 4000
 agent-lint check . --no-home --format sarif > agent-lint.sarif
 
-# 3. Static AST + isolated sandbox ReDoS gate
+# 3. Static AST + isolated sandbox ReDoS & graceful shutdown gates
 redos-hunter check src --confirm --format sarif > redos.sarif
+shutdown-guard check . --lb-idle-timeout 60 --format sarif > shutdown.sarif
 
 # 4. .env drift & secret-safe MCP exposure check
 env-guard check . --format sarif > env.sarif
