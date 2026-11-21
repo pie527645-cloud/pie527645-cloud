@@ -9,9 +9,12 @@ flowchart LR
     Slim --> WebIntel["open-web-intel-mcp (7 Local Web/ATS/RSS Tools)"]
     Slim --> Relay["agent-relay-mcp (Cross-Session Bridge + File Leases)"]
     Slim --> EnvGuard["env-guard-cli (Secret-Safe .env Guard)"]
-    Doctor["mcp-doctor (Security + SARIF 2.1.0 Auditor)"] -. audits configs & servers .-> Slim
-    Schema["schema-guard (MCP/OpenAPI/JSON Schema Diff)"] -. breaking-change gate .-> Slim
-    Cassette["mcp-cassette (Record & Replay Mock Harness)"] -. deterministic tests .-> Slim
+    Doctor["mcp-doctor (MCP Security + SARIF)"] -. audits servers .-> Slim
+    Schema["schema-guard (MCP/OpenAPI Diff)"] -. schema gate .-> Slim
+    Cassette["mcp-cassette (Record & Replay Harness)"] -. deterministic tests .-> Slim
+    Xray["lockfile-xray (Lockfile + CI Matrix)"] -. supply-chain gate .-> Agent
+    AgentLint["agent-lint (AGENTS/CLAUDE/SKILL Linter)"] -. prompt & script gate .-> Agent
+    Redos["redos-hunter (AST ReDoS + Sandbox)"] -. backtracking gate .-> Agent
     WebIntel -. managed cloud scale .-> Apify["Apify Store Actors (256 MB PPE)"]
 ```
 
@@ -28,6 +31,9 @@ flowchart LR
 | **[env-guard-cli](https://github.com/pie527645-cloud/env-guard-cli)** | Secret leaks, `.env` drift & agent reading `.env` raw | Zero runtime deps, polyglot TS/JS/Py/Go/Rust scanner, `.env.schema.json` validator, scrubbed `sync --write-example`, 3 secret-safe MCP tools, **SARIF 2.1.0** |
 | **[schema-guard](https://github.com/pie527645-cloud/schema-guard)** | Silent breaking changes in MCP tools & OpenAPI contracts | Deterministic diff for `mcp tools/list`, OpenAPI 3.0/3.1 & JSON Schema, `diff-git` via safe `execFile`, `$defs`/`$ref` resolution, **SARIF 2.1.0** |
 | **[mcp-cassette](https://github.com/pie527645-cloud/mcp-cassette)** | Flaky live MCP tests & recorded secret leaks in CI | Zero runtime deps, transparent stdio record & offline `--strict` replay mock server, pre-disk secret scrubbing, `inspect` latency/token stats |
+| **[lockfile-xray](https://github.com/pie527645-cloud/lockfile-xray)** | Hidden Node engine incompatibilities & supply-chain risks | Offline `package-lock.json` v2/v3 & `pnpm-lock.yaml` v6/v9 auditor, derives CI Node matrix via `semver.intersects`, flags install scripts & host mismatches, **SARIF 2.1.0** |
+| **[agent-lint](https://github.com/pie527645-cloud/agent-lint)** | Drifting `AGENTS.md`/`CLAUDE.md`/`SKILL.md`, dead scripts & injection | Static context budget (`context`), case-exact path & script verification, Trojan Unicode/secret scrubbing, `--no-home` safe by default, **SARIF 2.1.0** |
+| **[redos-hunter](https://github.com/pie527645-cloud/redos-hunter)** | Catastrophic exponential & quadratic ReDoS regex traps | AST code-point interval overlap (`u`/`v`/`i`), detects nested quantifiers & trailing delimiter traps, isolated `--confirm` timeout sandbox, verified **RDH001-006** clean rewrites, **SARIF 2.1.0** |
 | **[open-web-intel-mcp](https://github.com/pie527645-cloud/open-web-intel-mcp)** | Local web/B2B/ATS scraping without Chrome or proxies | 7 tools (`fetch_markdown` w/ `llms.txt`, sitemaps, 7 ATS boards, e-commerce, MX/DMARC, podcasts RSS), `undici` DNS pinning + Origin/Host-checked HTTP |
 | **[apify-automation-toolkit](https://github.com/pie527645-cloud/apify-automation-toolkit)** | Interactive endpoint probing & clean workflow starters | Bilingual EN/TH client-side probers + Header-Auth n8n templates ([Live Hub](https://pie527645-cloud.github.io/apify-automation-toolkit/)) |
 
