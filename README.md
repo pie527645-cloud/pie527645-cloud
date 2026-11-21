@@ -21,6 +21,7 @@ flowchart LR
     WsAudit["ws-hygiene-audit (ws maxPayload & Heartbeats)"] -. WebSocket gate .-> Slim
     RedisAudit["redis-hygiene-audit (KEYS, Multi/Exec & Error Hook)"] -. Redis gate .-> Slim
     ChildProc["child-proc-guard (Timeout, Pipe & Detached Kill)"] -. spawn gate .-> Slim
+    OtelAudit["otel-span-audit (Span Lifecycle & Status)"] -. OTel telemetry gate .-> Slim
     WebIntel -. managed cloud scale .-> Apify["Apify Store Actors (256 MB PPE)"]
 ```
 
@@ -46,6 +47,7 @@ flowchart LR
 | **[ws-hygiene-audit](https://github.com/pie527645-cloud/ws-hygiene-audit)** | Unbounded `ws` payloads, socket crashes & zombie WS links | Static TS AST auditor (`WSH001`-`WSH004`): missing `maxPayload` (`100 MiB` default), missing per-socket `'error'` listener, unguarded `JSON.parse`, missing `.ping()`/`isAlive` heartbeat, **SARIF 2.1.0** |
 | **[redis-hygiene-audit](https://github.com/pie527645-cloud/redis-hygiene-audit)** | Blocking Redis `KEYS`, dropped `multi()` & per-req clients | Static TS AST auditor (`RHA001`-`RHA004`) for `ioredis` & `node-redis`: `KEYS` usage, unexecuted `.multi()`/`.pipeline()`, per-request clients, missing `node-redis` `'error'` listeners, **SARIF 2.1.0** |
 | **[child-proc-guard](https://github.com/pie527645-cloud/child-proc-guard)** | Untimed `exec`/`spawnSync`, pipe deadlocks & zombie trees | Static TS AST auditor (`CPG001`-`CPG003`): missing `timeout`/`signal` on sync & promisified spawns, unread piped `stdout`/`stderr` waiting on `close`/`exit`, `detached` `child.kill()`, **SARIF 2.1.0** |
+| **[otel-span-audit](https://github.com/pie527645-cloud/otel-span-audit)** | Unended OTel spans, async `startActiveSpan` gaps & missing `ERROR` status | Static TS AST auditor (`OTL001`-`OTL003`) for `@opentelemetry/api`: unended `startSpan()` paths, `startActiveSpan` callbacks missing `.end()` or `await` outside `try/finally`, `recordException()` without `SpanStatusCode.ERROR`, **SARIF 2.1.0** |
 | **[open-web-intel-mcp](https://github.com/pie527645-cloud/open-web-intel-mcp)** | Local web/B2B/ATS scraping without Chrome or proxies | 7 tools (`fetch_markdown` w/ `llms.txt`, sitemaps, 7 ATS boards, e-commerce, MX/DMARC, podcasts RSS), `undici` DNS pinning + Origin/Host-checked HTTP |
 | **[apify-automation-toolkit](https://github.com/pie527645-cloud/apify-automation-toolkit)** | Interactive endpoint probing & clean workflow starters | Bilingual EN/TH client-side probers + Header-Auth n8n templates ([Live Hub](https://pie527645-cloud.github.io/apify-automation-toolkit/)) |
 
@@ -53,7 +55,7 @@ flowchart LR
 
 ## End-to-End CI & Agent Quality Pipeline
 
-All 17 TypeScript CLIs compose offline without network access and emit standard **SARIF 2.1.0** logs for GitHub Code Scanning:
+All 18 TypeScript CLIs compose offline without network access and emit standard **SARIF 2.1.0** logs for GitHub Code Scanning:
 
 ```bash
 # 1. Supply-chain & CI Node matrix gate (derives targets from package.json & .github/workflows)
@@ -71,6 +73,7 @@ sse-stream-lab check . --format sarif > sse-stream.sarif
 ws-hygiene-audit check . --format sarif > ws-hygiene.sarif
 redis-hygiene-audit check . --format sarif > redis-hygiene.sarif
 child-proc-guard check . --format sarif > child-proc.sarif
+otel-span-audit check . --format sarif > otel-span.sarif
 
 # 4. .env drift & secret-safe MCP exposure check
 env-guard check . --format sarif > env.sarif
