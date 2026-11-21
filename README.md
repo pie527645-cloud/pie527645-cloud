@@ -1,5 +1,3 @@
-Full-stack TypeScript & Automation Developer building open-source **Model Context Protocol (MCP)** infrastructure, **local coding-agent QoL tooling**, **direct-API web data extractors** (`256 MB`, zero residential proxies), and **n8n automation workflows**.
-
 ```mermaid
 flowchart LR
     Agent["AI Coding Agent"] --> Slim["mcp-slim-proxy (Token Saver + Poison Firewall)"]
