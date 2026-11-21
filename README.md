@@ -18,6 +18,7 @@ flowchart LR
     Shutdown["shutdown-guard (SIGTERM + Timeout Races)"] -. drain & 502 gate .-> Slim
     FetchAudit["fetch-resilience-audit (Body-Drain & Fanout)"] -. socket-leak gate .-> WebIntel
     SseAudit["sse-stream-lab (SSE Headers & UTF-8 Stream)"] -. SSE stream gate .-> WebIntel
+    WsAudit["ws-hygiene-audit (ws maxPayload & Heartbeats)"] -. WebSocket gate .-> Slim
     WebIntel -. managed cloud scale .-> Apify["Apify Store Actors (256 MB PPE)"]
 ```
 
@@ -40,6 +41,7 @@ flowchart LR
 | **[shutdown-guard](https://github.com/pie527645-cloud/shutdown-guard)** | Node.js `502` timeout races & abrupt `SIGTERM` drops | Two-pass TS Compiler API AST auditor (`SDG001`-`SDG005`): cross-file `SIGTERM`/`SIGINT` drain coverage, `headersTimeout <= keepAliveTimeout` checks, `--lb-idle-timeout` threshold, **SARIF 2.1.0** |
 | **[fetch-resilience-audit](https://github.com/pie527645-cloud/fetch-resilience-audit)** | Undici socket leaks, stale loop signals & `Promise.all` floods | TS AST auditor (`FRA001`-`FRA004`): unconsumed/uncancelled `fetch` & `undici.request` bodies, hoisted `AbortSignal.timeout` in loops, unbounded fan-out, **SARIF 2.1.0** |
 | **[sse-stream-lab](https://github.com/pie527645-cloud/sse-stream-lab)** | Missing SSE headers, `compression()` stalls & split UTF-8 chunks | Static TS AST auditor (`SSE001`-`SSE004`): missing `Cache-Control`, global `compression()` without `filter`, non-streaming `TextDecoder` / `chunk.toString()`, missing disconnect cleanup, **SARIF 2.1.0** |
+| **[ws-hygiene-audit](https://github.com/pie527645-cloud/ws-hygiene-audit)** | Unbounded `ws` payloads, socket crashes & zombie WS links | Static TS AST auditor (`WSH001`-`WSH004`): missing `maxPayload` (`100 MiB` default), missing per-socket `'error'` listener, unguarded `JSON.parse`, missing `.ping()`/`isAlive` heartbeat, **SARIF 2.1.0** |
 | **[open-web-intel-mcp](https://github.com/pie527645-cloud/open-web-intel-mcp)** | Local web/B2B/ATS scraping without Chrome or proxies | 7 tools (`fetch_markdown` w/ `llms.txt`, sitemaps, 7 ATS boards, e-commerce, MX/DMARC, podcasts RSS), `undici` DNS pinning + Origin/Host-checked HTTP |
 | **[apify-automation-toolkit](https://github.com/pie527645-cloud/apify-automation-toolkit)** | Interactive endpoint probing & clean workflow starters | Bilingual EN/TH client-side probers + Header-Auth n8n templates ([Live Hub](https://pie527645-cloud.github.io/apify-automation-toolkit/)) |
 
@@ -47,7 +49,7 @@ flowchart LR
 
 ## End-to-End CI & Agent Quality Pipeline
 
-All 14 TypeScript CLIs compose offline without network access and emit standard **SARIF 2.1.0** logs for GitHub Code Scanning:
+All 15 TypeScript CLIs compose offline without network access and emit standard **SARIF 2.1.0** logs for GitHub Code Scanning:
 
 ```bash
 # 1. Supply-chain & CI Node matrix gate (derives targets from package.json & .github/workflows)
@@ -62,6 +64,7 @@ redos-hunter check src --confirm --format sarif > redos.sarif
 shutdown-guard check . --lb-idle-timeout 60 --format sarif > shutdown.sarif
 fetch-resilience-audit check . --format sarif > fetch-resilience.sarif
 sse-stream-lab check . --format sarif > sse-stream.sarif
+ws-hygiene-audit check . --format sarif > ws-hygiene.sarif
 
 # 4. .env drift & secret-safe MCP exposure check
 env-guard check . --format sarif > env.sarif
