@@ -1,16 +1,29 @@
 # Pakatorn Jongsirikul (`@pie527645-cloud`)
 
-Full-stack TypeScript & Automation Developer building lightweight **Model Context Protocol (MCP)** developer tools, **direct-API web data extractors** (`256 MB`, zero residential proxies), and **n8n automation workflows**.
+Full-stack TypeScript & Automation Developer building open-source **Model Context Protocol (MCP)** infrastructure, **local coding-agent QoL tooling**, **direct-API web data extractors** (`256 MB`, zero residential proxies), and **n8n automation workflows**.
+
+```mermaid
+flowchart LR
+    Agent["AI Coding Agent"] --> Slim["mcp-slim-proxy (Token Saver + Poison Firewall)"]
+    Slim --> Atlas["repo-atlas (AST Repo Map + Blast Radius)"]
+    Slim --> WebIntel["open-web-intel-mcp (7 Local Web/ATS/RSS Tools)"]
+    Slim --> Relay["agent-relay-mcp (Cross-Session Bridge + File Leases)"]
+    Doctor["mcp-doctor (Security + SARIF 2.1.0 Auditor)"] -. audits configs & servers .-> Slim
+    WebIntel -. managed cloud scale .-> Apify["Apify Store Actors (256 MB PPE)"]
+```
 
 ---
 
-## Featured Open-Source Repositories
+## Open-Source MCP & Coding Agent Suite
 
-| Repository | What It Solves | Highlights |
+| Repository | Problem Solved | Key Highlights |
 | :--- | :--- | :--- |
-| **[mcp-doctor](https://github.com/pie527645-cloud/mcp-doctor)** | Security & context-budget auditing for MCP configs and live servers | Zero runtime deps, scans configs for exposed secrets/`npx -y`/shell risks, detects Unicode BiDi & tool poisoning, outputs **SARIF 2.1.0** for GitHub Code Scanning |
-| **[open-web-intel-mcp](https://github.com/pie527645-cloud/open-web-intel-mcp)** | Local web scraping & B2B/ATS/podcast data without headless browsers | 7 tools (`fetch_markdown`, `crawl_sitemap`, `search_ats_jobs`, `search_remote_jobs`, `inspect_ecommerce_store`, `enrich_domain_intel`, `search_podcasts_rss`), connect-time DNS-pinned SSRF guard (`undici`), stdio & Streamable HTTP |
-| **[apify-automation-toolkit](https://github.com/pie527645-cloud/apify-automation-toolkit)** | Free EN/TH browser probing tools & ready-to-import n8n JSON templates | Client-side ATS/Shopify/WooCommerce/Tech probers & Header-Auth n8n workflows ([Live Hub](https://pie527645-cloud.github.io/apify-automation-toolkit/)) |
+| **[repo-atlas](https://github.com/pie527645-cloud/repo-atlas)** | Eliminates 15-call agent orientation tax & blind edits | TypeScript Compiler API AST map within token budget, Tarjan cycle detection, `--relative -z` git blast radius, CI drift check, 3 read-only MCP tools |
+| **[mcp-slim-proxy](https://github.com/pie527645-cloud/mcp-slim-proxy)** | Stops 40K+ MCP tool-schema bloat & prompt injection | Multiplexes N stdio servers behind **4 lean meta-tools (`~739` tokens)**, BM25 lazy search, out-of-context `run_pipeline`, fail-closed poisoning quarantine |
+| **[agent-relay-mcp](https://github.com/pie527645-cloud/agent-relay-mcp)** | Multi-agent edit collisions & terminal stdin hijacking | Zero-native atomic local store, cooperative TTL file leases, monotonic cross-session channels, non-blocking human Q&A inbox + `127.0.0.1` web UI |
+| **[mcp-doctor](https://github.com/pie527645-cloud/mcp-doctor)** | Exposed secrets, tool poisoning & broken schemas in MCP | Zero runtime deps, audits configs + live stdio/HTTP servers, Context Token Tax breakdown, valid **SARIF 2.1.0** for GitHub Code Scanning |
+| **[open-web-intel-mcp](https://github.com/pie527645-cloud/open-web-intel-mcp)** | Local web/B2B/ATS scraping without Chrome or proxies | 7 tools (`fetch_markdown` w/ `llms.txt`, sitemaps, 7 ATS boards, e-commerce, MX/DMARC, podcasts RSS), `undici` DNS pinning + Origin/Host-checked HTTP |
+| **[apify-automation-toolkit](https://github.com/pie527645-cloud/apify-automation-toolkit)** | Interactive endpoint probing & clean workflow starters | Bilingual EN/TH client-side probers + Header-Auth n8n templates ([Live Hub](https://pie527645-cloud.github.io/apify-automation-toolkit/)) |
 
 ---
 
@@ -28,4 +41,4 @@ Need managed cloud runs, JSON/CSV datasets, scheduling, or Pay-Per-Event APIs (`
 
 ## Core Stack
 
-`TypeScript` · `Node.js` · `Model Context Protocol (MCP)` · `n8n` · `Apify SDK` · `Zod` · `GitHub Actions`
+`TypeScript` · `Node.js` · `Model Context Protocol (MCP)` · `Zod` · `n8n` · `Apify SDK` · `GitHub Actions`
